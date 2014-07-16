@@ -1,0 +1,2 @@
+[481]nolting@physlin42 ~/Desktop/Fitting/DARKexp> cat DARKexp.phi0.2.5 | sed 's/ \+/ /g' | sed 's/^ \+//'^C
+[481]nolting@physlin42 ~/Desktop/Fitting/DARKexp> #for i in $(ls | tr '\n' ' ' | sed 's/main[^\s]\+//g'); do echo $i | sed 's/ \+/ /g' | sed 's/^ \+//' > ../fixed/$i; done
