@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <cmath>
 #include <stdlib.h>
@@ -435,6 +436,7 @@ double EnergyFit::calculateRMSN(double * energy, double phi0Value, double logNSt
 
 }
 
+
 double EnergyFit::calculateRMSLogN(){
 	double RMSvalue=0;
 	double binsIncluded = 0;
@@ -442,21 +444,24 @@ double EnergyFit::calculateRMSLogN(){
 	double sumWeight = 0;
 	double contribution=0;
 	double theoryValue;
-
+	double var;
 	double p = phi0Value + tempEnergyStep;
 	double b = betaValue + tempBetaValueStep;
 	double a = scaleFactor + tempScaleStep;
-	
+	//cout <<"log10(" <<a <<"*(exp(" <<b <<"*(" <<p <<"-" <<energy[0] <<")) - 1.0))" <<endl;
 	for(int i = 0; i<lastBinToInclude; i++){
 		theoryValue = log10(a*(exp(b*(p - energy[i]))-1.0));
 		contribution = pow(abs(logN[i]-theoryValue),2);
-
+		//cout <<theoryValue <<" " <<logN[i] <<" " <<contribution <<" " <<N[i] <<" " <<energy[i] <<endl;
+		//if(i%10==0){cin >>var;}
+		//if(isnan(theoryValue)){cout <<"NaN: " <<"log10(" <<a <<"*(exp(" <<b <<"*(" <<p <<"-" <<energy[i] <<")) - 1.0))" <<endl;}
 		if(N[i] != 0 && energy[i] < 0 && theoryValue > 0){
 			sumContribution=sumContribution+contribution;
 			binsIncluded++;
 		}
 	}
 	RMSvalue = sqrt((sumContribution)/(binsIncluded));
+	//cin >>var; 
 	return RMSvalue;
 }
 
@@ -562,7 +567,7 @@ void EnergyFit::printScale(FILE * scaleFile){
 
 void EnergyFit::printBeta(FILE * betaFile){
 	for(int i=0;i<numberOfSteps;i++){
-			fprintf(betaFile,"%f%c\n",BetaPath[i],delimeter);
+			fprintf(betaFile,"%.10f%c\n",BetaPath[i],delimeter);
 	}
 }
 

@@ -9,7 +9,7 @@
 #include "fitting.h"
 #include "xorshift.h"
 
-#define RUN 3	//run = 1 only density / run = 2 only energy / run = 3 both
+#define RUN 2	//run = 1 only density / run = 2 only energy / run = 3 both
 
 using namespace std;
 
@@ -69,6 +69,7 @@ int main(){
 //---------------------LOOP FOR 1000 STEPS -----------------------------//
 
 				int stepCount = 0;
+				int failCount = 0;
 				while(stepCount < 1000){
 					for(int i = 0; i<thisFit->nBins; i++){
 						thisFit->scaledLogRadiusData[i] = thisFit->logRadiusData[i] + thisFit->totalRStep + thisFit->tempRStep;
@@ -103,7 +104,8 @@ int main(){
 
 					thisFit->tempRStep = MAX_R_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
 					thisFit->tempDStep = MAX_D_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
-				
+					failCount++;
+					if(failCount > 10000000){cout <<"density fitting failed" <<endl; break;}
 				};						//END FITTING LOOP 
 
 // ---------------------PRINT FITTING OUTPUT ----------------------------------//
@@ -157,9 +159,10 @@ int main(){
 			energyFitting->phi0Value = energyFitting->minEnergy;
 			energyFitting->findLastBinToInclude(energyFitting->N);
 			int numberOfAttemptedSteps = 0;
+			int energyFail = 0;
 			while (energySteps < energyFitting->numberOfSteps){
 				if(energyFitting->betaValue + energyFitting->tempBetaValueStep < 0){
-					//energyFitting->RMS=energyFitting->calculateRMSN(energyFitting->energy,energyFitting->phi0Value + energyFitting->tempEnergyStep,energyFitting->totalLogNStep + energyFitting->tempLogNStep,energyFitting->N, energyFitting->betaValue + energyFitting->tempBetaValueStep);
+					//energyFitting->RMS=energyFitting->calculateRMSN(energyFitting->energy,energyFitting->phi0Value + energyFitting->tempEnergyStep,energyFitting->scaleFactor + energyFitting->tempScaleStep,energyFitting->N, energyFitting->betaValue + energyFitting->tempBetaValueStep);
 					energyFitting->RMS=energyFitting->calculateRMSLogN();
 					//cout <<"rms is " <<energyFitting->RMS <<endl;
 					if(energySteps == 0 || energyFitting->makeStep(energyFitting->RMS,energyFitting->RMSArray[energySteps-1])){ 
@@ -191,6 +194,8 @@ int main(){
 					energyFitting->tempScaleStep = MAX_SCALE_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
 					energyFitting->tempBetaValueStep = MAX_BETA_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
 					numberOfAttemptedSteps++;
+					energyFail++;
+					if(energyFail > 1000000){cout <<"energy fitting failed" <<endl; break;}
 			};
 			cout <<"Halo ID " <<HaloID <<" has best phi_0 = " <<energyFitting->bestPhi*energyFitting->bestBeta <<" from energy fitting" <<endl;
 			energyFittingOutput_t energyOut = energyFitting->makeFittingFileNames(HaloID); //make the file path to write out to.
