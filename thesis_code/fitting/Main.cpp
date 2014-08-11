@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <cmath>
 #include "arrayconstructor.h"
@@ -9,23 +10,23 @@
 #include "fitting.h"
 #include "xorshift.h"
 
-#define RUN 2	//run = 1 only density / run = 2 only energy / run = 3 both
+#define RUN 3	//run = 1 only density / run = 2 only energy / run = 3 both
 
 using namespace std;
 
 void pausenow();
 
-//TO change from large to small data sets, change this directory
-#define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_large.txt"
-//#define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_small.txt"
+//TO change from large to small data sets, change this directory AND change mass Multiplier
+//#define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_large.txt"
+#define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_all.txt"
 #define PHI_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/DARKexp/phidirectory.txt"
-#define MASS_MULTIPLIER 10
 
 int main(){
 	FILE * idDirectoryFile = fopen(ID_DIRECTORY_NAME,"r");
 	if(idDirectoryFile == NULL){cout <<"null directory" <<endl;}
 	int numberOfHalos = getNumberOfRows(idDirectoryFile);					// count number of Halos
 	FILE * whichPhi0 = fopen("/home/chris/Desktop/Thesis/output/fitting/density_fit/whichphi0.txt","w+");
+	double massMult = 1; 	//will be 1 for small mass halos and 10 for large mass halos
 /// ------- START FOR LOOP -------------///
 
 	//all halos use numberOfHalos 
@@ -54,7 +55,9 @@ int main(){
 				//pausenow();
 				FILE * phi0File = makePhi0FileName(phi0Array[phi0tracker]);
 				int nrphi0 = getNumberOfRows(phi0File);			// count total number of rows of theory data
-				Fit * thisFit = new Fit(nrphi0,NUMBER_OF_BINS, ds,MASS_MULTIPLIER);
+				if(atoi(HaloID.c_str())<1000.0){massMult = 10.0;}
+				else{massMult = 1.0;}
+				Fit * thisFit = new Fit(nrphi0,NUMBER_OF_BINS, ds,massMult);
 				
 				int ncphi0 = getNumberOfColumns(phi0File);		// count total number of columns of theory data
 				double ** phi0data = assembleArray(phi0File,nrphi0,ncphi0);	// generate 2D array of all data in file
@@ -105,15 +108,19 @@ int main(){
 					thisFit->tempRStep = MAX_R_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
 					thisFit->tempDStep = MAX_D_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
 					failCount++;
-					if(failCount > 10000000){cout <<"density fitting failed" <<endl; break;}
+					if(failCount > 10000000){
+						cout <<"density fitting failed" <<endl; break;
+					}
 				};						//END FITTING LOOP 
 
 // ---------------------PRINT FITTING OUTPUT ----------------------------------//
+				thisFit->acceptance = 1.0/((double)failCount/1000.0);
+				//cout <<"density acceptance rate is " <<100.0*(1.0/((double)failCount/1000.0)) <<"%" <<endl;
 				//for(int e = 0 ; e<thisFit->nBins; e++){
 				//cout <<thisFit->bestPHI0[e] <<endl;
 				//}
 				bestRMSArray[phi0tracker] = thisFit->minRMS;
-				cout <<"best rms for " <<phi0tracker <<" is " <<bestRMSArray[phi0tracker] <<" = " <<thisFit->minRMS <<endl;
+				//cout <<"best rms for " <<phi0tracker <<" is " <<bestRMSArray[phi0tracker] <<" = " <<thisFit->minRMS <<endl;
 				fittingOutput_t fitOut = thisFit->makeFittingFileNames(HaloID, phi0Array[phi0tracker]);
 
 				thisFit->printFit(fitOut);
@@ -130,12 +137,9 @@ int main(){
 				//for(int l = 0; l<phi0tracker+1; l++){cout <<"phi0array is " <<phi0Array[l] <<endl <<"for phi0tracker is " <<l <<endl;}
 				//cout <<"loop done" <<endl;
 			}//end current phi0 loop, return to top to go to next phi0 value and continue fitting
-			cout <<"best rms array:" <<endl;
-			for(int e = 0; e<numberOfPhi; e++){cout <<bestRMSArray[e] <<endl;}
 			int bestPhi = 0;
 			double bestRms;
 			for(int i = 0; i<numberOfPhi; i++){
-				cout <<"RMS for phi of " <<phi0Array[i] <<" is " <<bestRMSArray[i] <<endl;
 				if(i==0 || bestRms > bestRMSArray[i]){
 				bestPhi = i;
 				bestRms = bestRMSArray[i];
@@ -146,7 +150,6 @@ int main(){
 			//free(phi0Array);
 			free(bestRMSArray);
 			fclose(phi0DirectoryFile);
-			pausenow();
 	}
 
 //------------------------------------------------------------------------------//
@@ -156,7 +159,6 @@ int main(){
 		if(RUN == 2 || RUN ==3){
 			EnergyFit * energyFitting = new EnergyFit(NUMBER_OF_ENERGY_BINS,ds);
 			int energySteps = 0;
-			energyFitting->phi0Value = energyFitting->minEnergy;
 			energyFitting->findLastBinToInclude(energyFitting->N);
 			int numberOfAttemptedSteps = 0;
 			int energyFail = 0;
@@ -190,13 +192,17 @@ int main(){
 						//cout <<"step not taken" <<endl;
 					}
 				}
-					energyFitting->tempEnergyStep = MAX_E_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
-					energyFitting->tempScaleStep = MAX_SCALE_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
-					energyFitting->tempBetaValueStep = MAX_BETA_STEP * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
+				do{
+					energyFitting->tempEnergyStep = energyFitting->maxEnergyStep * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
+					energyFitting->tempScaleStep = energyFitting->maxScaleStep * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
+					energyFitting->tempBetaValueStep = energyFitting->maxBetaStep * sqrt(-2*log(xor128()))*cos(2*pi*xor128());
+					}while((energyFitting->phi0Value+energyFitting->tempEnergyStep)*(energyFitting->betaValue+energyFitting->tempBetaValueStep)<0.5 || (energyFitting->phi0Value+energyFitting->tempEnergyStep)*(energyFitting->betaValue+energyFitting->tempBetaValueStep)>8.0);
 					numberOfAttemptedSteps++;
 					energyFail++;
 					if(energyFail > 1000000){cout <<"energy fitting failed" <<endl; break;}
 			};
+			energyFitting->acceptance = 1.0/((double)energyFail/1000.0);
+			//cout <<"energy acceptance rate is " <<100.0*(1.0/((double)energyFail/1000.0)) <<"%" <<endl;
 			cout <<"Halo ID " <<HaloID <<" has best phi_0 = " <<energyFitting->bestPhi*energyFitting->bestBeta <<" from energy fitting" <<endl;
 			energyFittingOutput_t energyOut = energyFitting->makeFittingFileNames(HaloID); //make the file path to write out to.
 			energyFitting->printOutput(energyOut);

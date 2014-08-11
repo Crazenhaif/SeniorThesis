@@ -56,6 +56,7 @@ public:
 	double * bestSLR;
 	double * bestSLD;
 	double * bestPHI0;
+	double acceptance;
 
 //constructor
 Fit(int nrphi0, int nBins, datasource_t ds, double massmult);
@@ -120,6 +121,10 @@ public:
 	double firstEnergyBin;
 	double deltaE;
 	int extraBins;
+	double acceptance;
+	double maxEnergyStep;
+	double maxBetaStep;
+	double maxScaleStep;
 
 //constructor
 EnergyFit(int nBins, datasource_t ds);

@@ -21,9 +21,9 @@ static inline double sq(double x) {
 //#define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_large.txt"
 #define ID_DIRECTORY_NAME "/home/chris/Desktop/Thesis/source_files/id_directory_small.txt"
 #define OUTNAME "/home/chris/Desktop/Thesis/output/equilibrium/outputfile.txt"
-#define resolution 1000
-#define massMult 1
-#define critNum 200
+#define resolution 1000	//break it into *1000* linear radius bins
+#define massMult 1	//should be 1 for the small mass halos and 10 for the large mass halos
+#define critNum 200	//*200* times the critical density
 	// =================== Main ====================
 
 int main() {
@@ -53,7 +53,6 @@ int main() {
 		
 		currentHalo->findMaxMinRadius();  //find the minimum and maximum radius and assign their values for the halo		
 		if(currentHalo->maxRadius > 2){cout <<"Halo ID " <<currentHalo->ID <<"has max radius " <<currentHalo->maxRadius <<endl;}
-		
 
 		// =============== find the critical radius (radius at which crit density is reached) ===============
 		

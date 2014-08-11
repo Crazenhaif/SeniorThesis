@@ -31,6 +31,7 @@ Halo::Halo(datasource_t ds){
 		particlesArray[i]->potential = potArray[i][0];
 	}
 
+	fixPositions();		//fix the postions of particles that may be near the boundaries of the simulation.
 
 	for(int i = 0; i<numberOfParticles;i++){	//free memory
 		free(posArray[i]);
@@ -56,6 +57,7 @@ Halo::Halo(datasource_t ds){
 	minRadius = 0;
 	maxRadius =0;
 	maxPotential = 0;
+	numberWithinSmoothing = 0;
 
 };
 
@@ -97,6 +99,7 @@ void Halo::findMaxMinRadius(){
 	double tempMax = particlesArray[0]->radius;
 	for(int i=0; i<numberOfParticles;i++){
 		if (particlesArray[i]->radius<=tempMin){tempMin = particlesArray[i]->radius;}
+		if(particlesArray[i]->radius<0.0028){numberWithinSmoothing++;}
 	}
 
 	for(int i=0; i<numberOfParticles;i++){
@@ -179,12 +182,45 @@ void Halo::printNotes(FILE * notesFile){
 	fprintf(notesFile,"max radius = %f Mpc/h\n",maxRadius);
 	fprintf(notesFile,"Critical radius is %f Mpc/h from the CoM, which is %f of the largest radius \n", rCrit, ratio);
 	fprintf(notesFile,"The radius from the CoM to the DeepCenter is %f Mpc/h, which is %f of the virial radius \n", radiusToDeepCenter, radiusToDeepCenter/rCrit);
+	fprintf(notesFile,"%d = the number of particles within 2.8kpc of the CoM of the halo",numberWithinSmoothing);
 
 }
 
 void Halo::printRatio(FILE * ratioFile){
 
 	fprintf(ratioFile,"%s %f",ID,ratio);
+}
+
+void Halo::fixPositions(){
+	double minX = particlesArray[0]->position.x, minY = particlesArray[0]->position.y, minZ = particlesArray[0]->position.z;
+	double maxX = particlesArray[0]->position.x, maxY = particlesArray[0]->position.y, maxZ = particlesArray[0]->position.z;
+	
+	for(int i = 0; i<numberOfParticles; i++){
+		if(particlesArray[i]->position.x<minX){minX = particlesArray[i]->position.x;}
+		if(particlesArray[i]->position.y<minY){minY = particlesArray[i]->position.y;}
+		if(particlesArray[i]->position.z<minZ){minZ = particlesArray[i]->position.z;}
+		if(particlesArray[i]->position.x>maxX){maxX = particlesArray[i]->position.x;}
+		if(particlesArray[i]->position.y>maxY){maxY = particlesArray[i]->position.y;}
+		if(particlesArray[i]->position.z>maxZ){maxZ = particlesArray[i]->position.z;}
+	}
+	
+	if(maxX - minX >90){
+		for(int i = 0; i<numberOfParticles; i++){
+			if(particlesArray[i]->position.x < 50){particlesArray[i]->position.x += 100;}
+		}
+	}
+
+	if(maxY - minY >90){
+		for(int i = 0; i<numberOfParticles; i++){
+			if(particlesArray[i]->position.y < 50){particlesArray[i]->position.y += 100;}
+		}
+	}
+
+	if(maxZ - minZ >90){
+		for(int i = 0; i<numberOfParticles; i++){
+			if(particlesArray[i]->position.z < 50){particlesArray[i]->position.z += 100;}
+		}
+	}
 }
 
 #endif

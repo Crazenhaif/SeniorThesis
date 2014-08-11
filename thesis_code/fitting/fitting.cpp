@@ -83,6 +83,7 @@ Fit::Fit(int nRows, int numberOfBins, datasource_t ds, double massmult){
 	minRMS=0;
 	bestR=0;
 	bestD=0;
+	acceptance = 0;
 }
 
 
@@ -310,6 +311,7 @@ void Fit::printFinal(FILE * finalFile){
 	fprintf(finalFile,"%f is the minimum RMS value%c\n",minRMS,delimeter);
 	fprintf(finalFile,"%f is the best R offset%c\n",bestR,delimeter);
 	fprintf(finalFile,"%f is the best D offset%c\n",bestD,delimeter);
+	fprintf(finalFile,"%f is the acceptance rate%c\n",acceptance,delimeter);
 }
 
 void Fit::closeFitFiles(fittingOutput_t fitOut){
@@ -363,9 +365,12 @@ EnergyFit::EnergyFit(int numberOfBins, datasource_t ds){
 	BetaPath = (double*)malloc(sizeof(double)*numberOfSteps);
 	memset(BetaPath, 0, sizeof(double) * numberOfSteps);
 
-	phi0Value = 0;
-	betaValue = -1.0/100000.0;
-	scaleFactor = 1;
+	phi0Value = minEnergy;
+	betaValue = 5.0/phi0Value;
+	scaleFactor = log10(50.0);
+	maxEnergyStep = phi0Value/2.0;
+	maxBetaStep = betaValue/2.0;
+	maxScaleStep = 0.1;
 	tempScaleStep = 0;
 	tempEnergyStep = 0;
 	tempBetaValueStep = 0;
@@ -377,6 +382,7 @@ EnergyFit::EnergyFit(int numberOfBins, datasource_t ds){
 	lastBinToInclude = 0;
 	firstEnergyBin = energy[0];
 	deltaE = energy[1]-energy[0];
+	acceptance = 0;
 }
 
 
@@ -447,7 +453,7 @@ double EnergyFit::calculateRMSLogN(){
 	double var;
 	double p = phi0Value + tempEnergyStep;
 	double b = betaValue + tempBetaValueStep;
-	double a = scaleFactor + tempScaleStep;
+	double a = pow(10,(scaleFactor + tempScaleStep));
 	//cout <<"log10(" <<a <<"*(exp(" <<b <<"*(" <<p <<"-" <<energy[0] <<")) - 1.0))" <<endl;
 	for(int i = 0; i<lastBinToInclude; i++){
 		theoryValue = log10(a*(exp(b*(p - energy[i]))-1.0));
@@ -580,6 +586,7 @@ void EnergyFit::printFinal(FILE * finalFile){
 	fprintf(finalFile,"%d last Bin Included with energy %f%c\n",x,energy[x],delimeter);
 	fprintf(finalFile,"final fit function is N(E) = 10^(%f)*(exp(%f*(%f - E)) - 1) %c\n",bestScale,bestBeta,bestPhi,delimeter);
 	fprintf(finalFile,"number of extra bins is %d%c\n",extraBins,delimeter);
+	fprintf(finalFile,"The acceptance rate is %f%c\n",acceptance,delimeter);
 }
 
 void EnergyFit::closeEnergyFitFiles(energyFittingOutput_t energyOut){

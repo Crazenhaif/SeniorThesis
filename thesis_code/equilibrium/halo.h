@@ -40,6 +40,7 @@ public:
 	double rCrit;			//radius where the contained average density is the critical density
 	double ratio;			//ratio rCrit/maxRadius
 	double radiusToDeepCenter;	//radius from CoM to deepest potential
+	int numberWithinSmoothing;	//keep track of how many particles are within 2.8 kpc of CoM
 
 		// Constructors
 	Halo();
@@ -61,6 +62,7 @@ public:
 	void printRadius(FILE * radFile);
 	void printNotes(FILE * notesFile);
 	void printRatio(FILE * ratiofile);
+	void fixPositions();
 	
 
 };
