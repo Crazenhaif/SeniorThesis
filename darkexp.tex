@@ -1,0 +1,35 @@
+\documentclass[12pt]{article}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{caption}
+\doublespacing
+\begin{document}
+\setlength\parindent{24pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\title{DARKexp: Working Title}
+\author{Chris Nolting \and Liliya Williams \and Mike
+Boylan-Kolchin}
+
+\maketitle
+
+\section*{Simulation}
+
+The data used came from the Millennium II simulation from the Max Planck Institute for Astrophysics. The total size of the simulation was 100Mpc wide with a spacial resolution of 1kpc. Each particle in the simulation had a mass of $6.885*10^6  M_\odot$. The overall simulation tracked $10^{10}$ particles and contained many structures to be separated into `galaxy halos.' To separate one `galaxy halo' from another in the simulation, a friends-of-friends method was used. The potential values from the simulation were smoothed using the smoothing kernal from Springel (2001) with a characteristic softening length of 2.8kpc.
+
+\section*{Data Analysis}
+
+The particle positions were recentered to the center of mass of the halo. From these positions, the density distribution was generated logrithmically with radius. To find the energy distribution, the total energies of the particles must be known. Therefore, the velocities relative to the halo had to be found. The bulk motion of the halo was found by averaging the velocities of the central particles\footnote{\scriptsize Meaning particles with a radius from the center of mass less than 7\% of the total extent of the halo. This value was taken such that this contained about the inner-most 10\% of particles for most halos.} With this bulk motion removed, the kinetic energy was found. The potential energy was calculated independently given the particle locations and the same smoothing kernal from Springel (2001). This calculation agreed with the Millennium II potentials provided except for a constant offset and scatter at larger radii due to the effects of other simulation particles not included in the analyzed halo data set. We used the potential values that we calculated in all further analysis. With the kinetic and potential energies found, the energy distribution, or the number of particles per linear energy bin, could be plotted.
+
+\subsection*{Determining Equilibrium}
+
+Since DARKexp only applies to well equilibriated systems, it was important to determine if the halo being analyzed was equilibriated or not. This determination was done by finding the distance between the center of mass of the halo and the location of the deepest potential. \bf{INCLUDE FIGURE 8} add some discription for the figure.
+
+\section*{Fitting}
+The fitting process used was a Markov Chain Monte Carlo method. The density fitting, which was done in log space, was a two parameter fit. The parameters were offsets in the log(radius) and the log(density), which corrospond to scaling factors in linear space.
+
+
+\end{document} 
